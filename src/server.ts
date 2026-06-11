@@ -5,6 +5,7 @@ import "reflect-metadata";
 import { AppDataSource } from './config/data-source';
 import authRouter from "./modules/auth/auth.routes";
 import aircraftRouter from "./modules/aircrafts/aricraft.routes";
+import discrepancyRouter from "./modules/discrepancies/discrepancy.routes";
 
 dotenv.config();
 
@@ -15,6 +16,7 @@ app.use(cors());
 app.use(express.json());
 app.use("/api/auth", authRouter);
 app.use("/api/aircrafts", aircraftRouter);
+app.use("/api/discrepancies", discrepancyRouter);
 
 
 app.get('/', (req, res) => {

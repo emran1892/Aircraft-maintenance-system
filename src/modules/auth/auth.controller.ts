@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { registerUserService, loginUserService } from "./auth.service";
+import { registerUserService, loginUserService, adminCreateUserService } from "./auth.service";
 
 export const registerUser = async (req: Request, res: Response) => {
     try {
@@ -33,3 +33,14 @@ export const loginUser = async (req: Request, res: Response) => {
         res.status(401).json({ message: error.message });
     }
 };
+
+export const adminCreateUser = async (req: Request, res: Response) => {
+    try {
+        const userinfo = req.body;
+        const savedUser = await adminCreateUserService(userinfo);
+        res.status(201).json({ message: "New employee account created successfully by Admin!", user: savedUser });
+
+    } catch (error: any) {
+        res.status(400).json({ message: error.message });
+    }
+}

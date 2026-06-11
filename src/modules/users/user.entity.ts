@@ -3,7 +3,8 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateCol
 // ইউজার রোল ডিফাইন করার জন্য একটি Enum (নির্দিষ্ট কিছু অপশন)
 export enum UserRole {
     ADMIN = "admin",
-    ENGINEER = "engineer"
+    ENGINEER = "engineer",
+    CHECKER = "checker"
 }
 
 @Entity("users") // table name in database 'users'
@@ -23,7 +24,7 @@ export class User {
     @Column({
         type: "enum",
         enum: UserRole,
-        default: UserRole.ENGINEER // when new user created, default role will be engineer
+        default: UserRole.ENGINEER || UserRole.CHECKER // when new user created, default role will be engineer or checker
     })
     role!: UserRole;
 

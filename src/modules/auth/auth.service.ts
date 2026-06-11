@@ -1,5 +1,5 @@
 import { AppDataSource } from "../../config/data-source";
-import { User } from "../users/user.entity";
+import { User, UserRole } from "../users/user.entity";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
@@ -60,4 +60,38 @@ export const loginUserService = async (loginData: any) => {
         token
     };
 };
+
+export const adminCreateUserService = async (userData: any) => {
+    const userRepository = AppDataSource.getRepository(User);
+    const { name, email, password, role } = userData;
+
+    // 1.check emrail
+    const existingUser = await userRepository.findOne({ where: { email } });
+    if (existingUser) {
+        throw new Error("User with this email already exists!");
+    }
+
+    // 2. validate role
+    if (!Object.values(UserRole).includes(role)) {
+        throw new Error("Invalid role! Use 'admin', 'engineer', or 'checker'.");
+    }
+
+    // 3. hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // 4. create new user
+    const newUser = userRepository.create({
+        name,
+        email,
+        password: hashedPassword,
+        role: role as UserRole // admin's provided role will be used here
+    });
+
+    const savedUser = await userRepository.save(newUser);
+
+    // return the user info without password
+    const { password: _, ...userWithoutPassword } = savedUser;
+    return userWithoutPassword;
+};
+
 
