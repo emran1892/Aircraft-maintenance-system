@@ -1,5 +1,5 @@
 import { NextFunction, Router, Response } from "express";
-import { registerUser, loginUser, adminCreateUser } from "./auth.controller";
+import { registerUser, loginUser, adminCreateUser, getAllEngineers } from "./auth.controller";
 import { authMiddleware, AuthRequest } from "../../middleware/auth.middleware";
 
 const authRouter = Router();
@@ -20,5 +20,5 @@ authRouter.post("/login", loginUser);
 
 // Secure route: Admin can manually onboard new employees (Engineers or Checkers)
 authRouter.post("/create-user", authMiddleware, isAdmin, adminCreateUser);
-
+authRouter.get("/engineers", authMiddleware, getAllEngineers);
 export default authRouter;

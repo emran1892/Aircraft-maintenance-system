@@ -1,6 +1,6 @@
 import { Router, Request, Response, NextFunction } from "express";
 import { AuthRequest } from "../../middleware/auth.middleware";
-import { createDiscrepancyService, getAllDiscrepanciesService, assignOrClaimTaskService, resolveDiscrepancyService } from "./discrepancy.service";
+import { createDiscrepancyService, getAllDiscrepanciesService, assignOrClaimTaskService, resolveDiscrepancyService, getAllEngineersService, getEngineerDiscrepanciesService, startDiscrepancyService } from "./discrepancy.service";
 
 
 
@@ -110,5 +110,61 @@ export const resolveDiscrepancy = async (req: AuthRequest, res: Response) => {
         });
     } catch (error: any) {
         res.status(400).json({ message: error.message });
+    }
+};
+
+export const getAllEngineers = async (req: Request, res: Response) => {
+    try {
+        const engineers = await getAllEngineersService();
+        res.status(200).json({ data: engineers });
+    } catch (error: any) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+
+export const getEngineerTasks = async (req: AuthRequest, res: Response) => {
+    try {
+        const engineerId = req.user?.id; // মিডলওয়্যার থেকে পাওয়া ইঞ্জিনিয়ার আইডি
+
+        if (!engineerId) {
+            return res.status(401).json({ message: "Unauthorized access." });
+        }
+
+        const tasks = await getEngineerDiscrepanciesService(engineerId);
+
+        return res.status(200).json({
+            message: "Tasks retrieved successfully!",
+            data: tasks
+        });
+    } catch (error: any) {
+        return res.status(500).json({ message: error.message });
+    }
+};
+
+// ⚙️ নতুন ফাংশন: ইঞ্জিনিয়ার যখন কাজ শুরু করবে (Status -> IN_PROGRESS)
+export const startDiscrepancyTask = async (req: AuthRequest, res: Response) => {
+    try {
+        const idParam = req.params.id;
+        const id = Array.isArray(idParam) ? idParam[0] : idParam;
+
+        if (!id) {
+            return res.status(400).json({ message: "Discrepancy Card ID is required in the URL." });
+        }
+
+        const engineerId = req.user?.id;
+        if (!engineerId || req.user?.role !== "engineer") {
+            return res.status(403).json({ message: "Access denied. Only the assigned Engineer can start this task!" });
+        }
+
+        // সার্ভিস লেয়ারের স্টার্ট মেথডকে কল করা
+        const updatedCard = await startDiscrepancyService(id, engineerId);
+
+        return res.status(200).json({
+            message: "Task started successfully and is now In Progress! 🛠️",
+            data: updatedCard
+        });
+    } catch (error: any) {
+        return res.status(400).json({ message: error.message });
     }
 };

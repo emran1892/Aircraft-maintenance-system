@@ -1,5 +1,5 @@
 import { Router, Response, NextFunction } from "express";
-import { createDiscrepancy, getAllDiscrepancies, assignOrClaimTask, resolveDiscrepancy } from "./discrepancy.controller";
+import { createDiscrepancy, getAllDiscrepancies, assignOrClaimTask, resolveDiscrepancy, getAllEngineers, getEngineerTasks, startDiscrepancyTask } from "./discrepancy.controller";
 import { authMiddleware, AuthRequest } from "../../middleware/auth.middleware";
 
 const discrepancyRouter = Router();
@@ -18,5 +18,7 @@ discrepancyRouter.post("/report", authMiddleware, isChecker, createDiscrepancy);
 discrepancyRouter.get("/all", authMiddleware, getAllDiscrepancies);
 discrepancyRouter.patch("/:id/assign", authMiddleware, assignOrClaimTask);
 discrepancyRouter.patch("/:id/resolve", authMiddleware, resolveDiscrepancy);
-
+discrepancyRouter.get("/engineers", authMiddleware, getAllEngineers);
+discrepancyRouter.get("/my-tasks", authMiddleware, getEngineerTasks);
+discrepancyRouter.patch("/:id/start", authMiddleware, startDiscrepancyTask);
 export default discrepancyRouter;

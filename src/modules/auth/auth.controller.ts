@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { registerUserService, loginUserService, adminCreateUserService } from "./auth.service";
+import { registerUserService, loginUserService, adminCreateUserService, getAllEngineersService } from "./auth.service";
 
 export const registerUser = async (req: Request, res: Response) => {
     try {
@@ -44,3 +44,15 @@ export const adminCreateUser = async (req: Request, res: Response) => {
         res.status(400).json({ message: error.message });
     }
 }
+
+export const getAllEngineers = async (req: Request, res: Response) => {
+    try {
+        const engineers = await getAllEngineersService();
+        res.status(200).json({
+            message: "Engineers list retrieved successfully!",
+            data: engineers
+        });
+    } catch (error: any) {
+        res.status(500).json({ message: error.message });
+    }
+};

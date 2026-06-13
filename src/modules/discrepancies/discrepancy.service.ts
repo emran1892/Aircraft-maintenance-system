@@ -1,4 +1,5 @@
 import { AppDataSource } from "../../config/data-source";
+import { In } from "typeorm";
 import { Discrepancy, DiscrepancyStatus } from "./discrepancy.entity";
 import { Aircraft, AircraftStatus } from "../aircrafts/aircraft.entity";
 import { User, UserRole } from "../users/user.entity";
@@ -97,11 +98,12 @@ export const assignOrClaimTaskService = async (discrepancyId: string, engineerId
 
 //-----------------------------------------------------------------------------------------------------------
 
+
+
 export const resolveDiscrepancyService = async (discrepancyId: string, engineerId: string) => {
     const discrepancyRepository = AppDataSource.getRepository(Discrepancy);
     const aircraftRepository = AppDataSource.getRepository(Aircraft);
 
-    // 1. Find the discrepancy card with its related aircraft
     const discrepancy = await discrepancyRepository.findOne({
         where: { id: discrepancyId },
         relations: { aircraft: true, assignedTo: true }
@@ -111,27 +113,80 @@ export const resolveDiscrepancyService = async (discrepancyId: string, engineerI
         throw new Error("Discrepancy card not found!");
     }
 
-    // 2. Security Check: Ensure ONLY the engineer assigned to this task can resolve it
     if (!discrepancy.assignedTo || discrepancy.assignedTo.id !== engineerId) {
-        throw new Error("Access denied! You cannot resolve a task that is not assigned to you.");
+        throw new Error("Access denied!");
     }
 
-    // 3. Check if it's already resolved
     if (discrepancy.status === DiscrepancyStatus.RESOLVED) {
-        throw new Error("This discrepancy has already been resolved!");
+        throw new Error("Already resolved!");
     }
 
-    // 4. Update the task status to RESOLVED
+    // 1. Update discrepancy status
     discrepancy.status = DiscrepancyStatus.RESOLVED;
     await discrepancyRepository.save(discrepancy);
 
-    // 5. THE MAGIC PART: Automatically change the aircraft status back to fully_serviceable
-    const aircraft = discrepancy.aircraft;
-    aircraft.status = AircraftStatus.SERVICEABLE;
-    await aircraftRepository.save(aircraft);
+    const aircraftId = discrepancy.aircraft?.id;
+
+    if (aircraftId) {
+        // 2. Check for other active issues
+        const activeIssuesCount = await discrepancyRepository.count({
+            where: {
+                aircraft: { id: aircraftId },
+                status: In([DiscrepancyStatus.OPEN, DiscrepancyStatus.IN_PROGRESS])
+            }
+        });
+
+        // 3. If no other issues, force update to big 'SERVICEABLE'
+        if (activeIssuesCount === 0) {
+            await aircraftRepository
+                .createQueryBuilder()
+                .update(Aircraft)
+                .set({ status: AircraftStatus.SERVICEABLE })
+                .where("id = :id", { id: aircraftId })
+                .execute();
+        }
+    }
+
+    const freshDiscrepancy = await discrepancyRepository.findOne({
+        where: { id: discrepancyId },
+        relations: { aircraft: true }
+    });
 
     return {
-        discrepancy,
-        aircraft_status: aircraft.status
+        discrepancy: freshDiscrepancy,
+        aircraft_status: freshDiscrepancy?.aircraft?.status || null
     };
+};
+export const getAllEngineersService = async () => {
+    const userRepository = AppDataSource.getRepository(User);
+    return await userRepository.find({ where: { role: UserRole.ENGINEER } });
+};
+
+//when engineer login and want to see only his assigned tasks, then we will use this service to get only those discrepancies which are assigned to that engineer
+export const getEngineerDiscrepanciesService = async (engineerId: string) => {
+    const discrepancyRepository = AppDataSource.getRepository(Discrepancy);
+
+    return await discrepancyRepository.find({
+        where: { assignedTo: { id: engineerId } }, // শুধু এই ইঞ্জিনিয়ারের টাস্ক
+        relations: { "aircraft": true, "reportedBy": true }, // এয়ারক্রাফট ও রিপোর্টারের ডিটেইলস সহ
+        order: { createdAt: "DESC" }
+    });
+};
+
+
+export const startDiscrepancyService = async (discrepancyId: string, engineerId: string) => {
+    const discrepancyRepository = AppDataSource.getRepository(Discrepancy);
+
+    const discrepancy = await discrepancyRepository.findOne({
+        where: { id: discrepancyId },
+        relations: { assignedTo: true }
+    });
+
+    if (!discrepancy) throw new Error("Discrepancy not found!");
+    if (!discrepancy.assignedTo || discrepancy.assignedTo.id !== engineerId) {
+        throw new Error("You can only start tasks assigned to you!");
+    }
+
+    discrepancy.status = DiscrepancyStatus.IN_PROGRESS;
+    return await discrepancyRepository.save(discrepancy);
 };

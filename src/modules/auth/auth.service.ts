@@ -95,3 +95,16 @@ export const adminCreateUserService = async (userData: any) => {
 };
 
 
+export const getAllEngineersService = async () => {
+    const userRepository = AppDataSource.getRepository(User);
+
+    // only for engineer
+    return await userRepository.find({
+        where: { role: UserRole.ENGINEER },
+        select: {
+            id: true,
+            name: true,
+            email: true
+        }
+    });
+};
