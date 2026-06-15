@@ -34,3 +34,28 @@ The ecosystem connects three distinct roles to ensure absolute aircraft safety b
 - **Dynamic Fleet Status Tracking:** Live visual state shifts when an aircraft goes under maintenance.
 - **Secure Onboarding:** Admin-guarded api endpoints (`isAdmin` middleware) preventing unauthorized user creation.
 - **Clean Architecture:** Fully typed data objects using **TypeScript** across both frontend and backend layers.
+
+http://localhost:5173/checker
+http://localhost:5173/engineer
+http://localhost:5173/admin
+
+{
+  "name": "Tariqul Islam",
+  "email": "tariq.eng@airline.com",
+  "password": "engineerpass",
+  "role": "engineer"
+}
+
+{
+  "name": "Kamal Hossain",
+  "email": "kamal.checker@airline.com",
+  "password": "checkerpass",
+  "role": "checker"
+}
+--------------------------------------
+admin
+{
+  "name": "Rahim Ahmed",
+  "email": "rahim@aviation.com",
+  "password": "1234"
+}
