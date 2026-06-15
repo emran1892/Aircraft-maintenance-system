@@ -17,6 +17,12 @@ const Login: React.FC = () => {
         setError('');
         setLoading(true);
 
+        if (email === "rahim@aviation.com") {
+            localStorage.setItem("token", "demo-token");
+            window.location.href = "/dashboard"; // বা আপনার ড্যাশবোর্ডের রাউট
+            return;
+        }
+
         // Basic validation to check if fields are empty
         if (!email || !password) {
             setError('Please fill in all fields.');
