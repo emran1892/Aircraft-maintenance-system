@@ -19,7 +19,7 @@ const Login: React.FC = () => {
 
         if (email === "rahim@aviation.com") {
             localStorage.setItem("token", "demo-token");
-            window.location.href = "/dashboard"; // বা আপনার ড্যাশবোর্ডের রাউট
+            window.location.href = "/admin"; // বা আপনার ড্যাশবোর্ডের রাউট
             return;
         }
 
