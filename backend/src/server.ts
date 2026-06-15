@@ -4,7 +4,7 @@ import * as dotenv from 'dotenv';
 import "reflect-metadata";
 import { AppDataSource } from './config/data-source';
 import authRouter from "./modules/auth/auth.routes";
-import aircraftRouter from "./modules/aircrafts/aricraft.routes";
+import aircraftRouter from "./modules/aircrafts/aircraft.routes";
 import discrepancyRouter from "./modules/discrepancies/discrepancy.routes";
 
 dotenv.config();

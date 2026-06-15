@@ -1,8 +1,12 @@
 import axios from 'axios';
 
-//Backend base URL
+// Backend base URL (লোকাল ও লাইভ সার্ভার ডাইনামিকলি হ্যান্ডেল করার জন্য)
+const isLocalhost = window.location.hostname === 'localhost';
+
 const apiClient = axios.create({
-    baseURL: 'http://localhost:5000/api',
+    baseURL: isLocalhost
+        ? 'http://localhost:5000/api'     // আপনার কম্পিউটারে রান করার সময়
+        : '/_/backend/api',               // Vercel-এ লাইভ থাকার সময়
     headers: {
         'Content-Type': 'application/json',
     },
